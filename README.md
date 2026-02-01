@@ -147,4 +147,12 @@ This project prioritizes:
 - Motion as a tool for clarity, not decoration
 - Code readability and separation of concerns
 
+## Deployment
+
+The frontend is deployed on Vercel using the Next.js App Router.
+The backend is deployed separately and accessed via environment-based API configuration.
+
+Environment variables are used to switch between local and production APIs.
+
+
 Perkstack is intentionally scoped to demonstrate full-stack reasoning, not to simulate a production-scale platform.
