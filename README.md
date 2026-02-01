@@ -1,65 +1,150 @@
-# Startup Benefits Platform
+# Perkstack
 
-A premium SaaS benefits platform designed for startups to access exclusive deals and discounts.
+**Exclusive SaaS benefits for early-stage startups**
 
-## End-to-End Application Flow
+Perkstack is a startup benefits and partnerships platform designed to help early-stage teams, founders, and indie hackers access premium SaaS tools at a fraction of the usual cost. The platform focuses on clarity of flow, strong access control, and a high-quality, motion-driven user experience.
 
-1. **Onboarding**: Users arrive at the Landing Page, greeted by a high-performance, animated hero section. They can explore the value proposition or proceed to registration.
-2. **Authentication**: Users sign up or log in using the secure JWT-based auth system. The UI provides real-time feedback and validation.
-3. **Discovery**: Authenticated users browse the Deals Marketplace. They can search by keywords or filter by categories. Deals are presented with rich visuals and key information.
-4. **Verification**: Some deals are "Locked". In a production environment, this would require KYC or startup verification. Currently, the system checks if the deal is locked and manages access permissions.
-5. **Claiming**: Users view deal details and click "Claim". The system validates eligibility (e.g., ensuring not already claimed) and generates a unique license key.
-6. **Management**: Users track their claimed deals, status, and license keys in the robust Dashboard.
+---
 
-## Authentication & Authorization Strategy
+## 📌 Business Context
 
-- **Backend**: Implemented using `jsonwebtoken` (JWT) and `bcryptjs`.
-  - Passwords are hashed before storage.
-  - JWTs are signed with a secret and include `userId` and `role`.
-  - Middleware intercepts requests to protected routes, verifying the token signature and expiration.
-- **Frontend**: 
-  - Tokens are stored in `localStorage`.
-  - An `api` interceptor automatically attaches the Bearer token to every outgoing request.
-  - Client-side checks (e.g., in Navbar) control visibility of UI elements based on auth state.
+Early-stage startups often struggle to afford essential SaaS tools such as cloud infrastructure, marketing platforms, analytics software, and productivity systems. Perkstack bridges this gap by partnering with SaaS providers to offer curated, startup-only benefits.
 
-## Internal Flow of Claiming a Deal
+Some deals are publicly accessible, while others are restricted and require verification to preserve partner value.
 
-1. User clicks "Claim Deal" on the frontend.
-2. Frontend sends `POST /api/deals/:id/claim` with the user's auth token.
-3. Backend Middleware verifies the user.
-4. Controller fetches the Deal and User from MongoDB.
-5. **Validation**:
-   - Checks if the deal exists.
-   - Checks if the deal is "Locked" (requires specific logic, simplified here).
-   - Checks if a Claim record already exists for this User + Deal pair.
-6. If valid, a new `Claim` document is created with a generated `claimCode`.
-7. Response returns the Claim object.
-8. Frontend updates the UI to show success and redirects to Dashboard.
+---
 
-## Interaction Between Frontend & Backend
+## 🔁 End-to-End Application Flow
 
-- **API Layer**: The frontend uses a centralized `axios` instance (`src/lib/api.ts`) configured with the base URL and interceptors.
-- **Data Flow**:
-  - React components allow for local state management (loading, error, data).
-  - `useEffect` hooks trigger data fetching on mount.
-  - `Next.js` App Router handles client-side routing.
+### Landing & Discovery
 
-## Known Limitations & Weak Points
+Users arrive on a premium SaaS-style landing page featuring motion-driven storytelling and a clear value proposition. Public content is accessible without authentication.
 
-- **Security**: Storing JWT in `localStorage` is susceptible to XSS. HttpOnly cookies would be safer (requires more complex setup).
-- **Verification**: The "Locked" concept is implemented but the actual business logic for unlocking (e.g., uploading documents) is mocked/simplified for this assignment.
-- **Scalability**: MongoDB connection is established on server start. Connection pooling is handled by Mongoose default, but for high scale, optimization might be needed.
+### Authentication
 
-## Improvements for Production
+Users register or log in using a JWT-based authentication system. The UI provides clear loading and error feedback during the process.
 
-1. **Security**: Move to HttpOnly cookies for auth tokens. Implement Rate Limiting on API routes.
-2. **Validation**: Add Zod validation schemas for all API inputs.
-3. **Performance**: Implement React Query or SWR for better caching and optimistic updates on the frontend.
-4. **Resilience**: Add comprehensive error logging (e.g., Sentry).
+### Deals Marketplace
 
-## UI & Performance Considerations
+Authenticated users can browse all available deals. The interface supports search and filtering by category and access level (locked / unlocked).
 
-- **Styling**: Tailwind CSS v3 used for a highly optimized, utility-first styling approach.
-- **Motion**: `motion` (formerly Framer Motion) is used for declarative, hardware-accelerated animations. `layout` props are used for expensive layout thrashing avoidance updates.
-- **Components**: Glassmorphism effects (`backdrop-blur`) can be performance-heavy; used selectively on high-impact areas.
-- **Responsiveness**: Mobile-first design ensures functionality across all device sizes.
+### Access Control & Verification
+
+Certain deals are marked as **Locked**. For this assignment, access control is enforced at the API level based on deal properties and user eligibility. In a production system, this would be extended to include startup verification workflows.
+
+### Claiming a Deal
+
+Eligible users can claim a deal directly from the deal details page. The backend validates eligibility and prevents duplicate claims.
+
+### Dashboard & Management
+
+Claimed deals appear in the user dashboard with status tracking (e.g., pending, approved) and associated claim metadata.
+
+---
+
+## 🔐 Authentication & Authorization Strategy
+
+### Backend
+
+- JWT-based authentication using `jsonwebtoken`
+- Password hashing with `bcryptjs`
+- Tokens include essential user metadata (`userId`, `role`)
+- Protected routes are guarded using Express middleware that validates token integrity and expiration
+
+### Frontend
+
+- JWT stored in `localStorage` (noted as a limitation)
+- Centralized Axios instance automatically attaches the Bearer token to authenticated requests
+- UI elements (Navbar actions, protected pages) respond to authentication state
+
+---
+
+## 🔄 Internal Flow: Claiming a Deal
+
+1. User clicks **“Claim Deal”** on the frontend
+2. Frontend sends `POST /api/deals/:id/claim` with the JWT token
+3. Authentication middleware validates the token
+4. Controller retrieves the Deal and User from MongoDB
+5. Validation logic checks:
+   - Deal existence
+   - Deal access level (locked vs unlocked)
+   - Whether the user has already claimed the deal
+6. If valid, a new `Claim` document is created
+7. The API returns the claim details
+8. Frontend updates UI state and reflects the claim in the Dashboard
+
+---
+
+## 🔗 Frontend ↔ Backend Interaction
+
+### API Layer
+
+A centralized Axios client (`lib/api.ts`) manages:
+
+- Base URL configuration
+- Authorization headers
+- Error propagation
+
+### Frontend State Flow
+
+- Component-level state manages loading, success, and error states
+- Data fetching occurs via `useEffect` hooks
+- Navigation handled using Next.js App Router
+
+---
+
+## 🎨 UI, Motion & Performance Decisions
+
+- **Framework**: Next.js (App Router) with TypeScript
+- **Styling**: Tailwind CSS for fast iteration and consistent design tokens
+
+### Motion
+
+- Page-level and component-level animations implemented using `motion`
+- Scroll-based text reveals are used only for long-form storytelling content
+- Critical UI actions (auth, CTAs) avoid heavy animation for clarity and speed
+
+### Visual Design
+
+- Glassmorphism and backdrop blur used selectively
+- Motion is intentionally restrained to avoid overwhelming the user
+
+---
+
+## ⚠️ Known Limitations
+
+### Token Storage
+
+JWTs are stored in `localStorage`, which is vulnerable to XSS. This was chosen for simplicity within the assignment scope.
+
+### Verification Logic
+
+The concept of locked deals is implemented, but real startup verification (documents, domain checks, KYC) is intentionally simplified.
+
+### Scalability
+
+MongoDB connection management relies on default Mongoose behavior. High-scale production systems would require additional tuning and monitoring.
+
+---
+
+## 🚀 Improvements for Production Readiness
+
+- Move authentication to HttpOnly cookies
+- Add request validation using Zod
+- Introduce rate limiting and abuse protection
+- Implement structured logging and monitoring (e.g., Sentry)
+- Add caching and background revalidation for deal data
+- Extend verification workflows with real startup validation
+
+---
+
+## 🧠 Design Philosophy
+
+This project prioritizes:
+
+- Clear user flows over feature volume
+- Explicit access control and validation
+- Motion as a tool for clarity, not decoration
+- Code readability and separation of concerns
+
+Perkstack is intentionally scoped to demonstrate full-stack reasoning, not to simulate a production-scale platform.
