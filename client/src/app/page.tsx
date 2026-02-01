@@ -1,6 +1,5 @@
 import { Navbar } from "@/components/layout/Navbar";
 import { Hero } from "@/components/landing/Hero";
-import { Partners } from "@/components/landing/Partners";
 import { Footer } from "@/components/layout/Footer";
 
 export default function Home() {

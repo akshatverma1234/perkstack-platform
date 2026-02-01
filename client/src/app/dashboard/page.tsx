@@ -1,18 +1,19 @@
 "use client";
 import { useState, useEffect } from "react";
-import { motion } from "motion/react";
 import { Navbar } from "@/components/layout/Navbar";
 import api from "@/lib/api";
-import { User, Copy, Check } from "lucide-react";
+import { Ticket, ArrowUpRight } from "lucide-react";
+import Link from "next/link";
 
 interface Claim {
   _id: string;
   dealId: {
+    _id: string;
     title: string;
     partnerName: string;
     logoUrl: string;
   };
-  status: string;
+  status: "pending" | "approved" | "rejected";
   claimCode: string;
   createdAt: string;
 }
@@ -21,13 +22,12 @@ export default function DashboardPage() {
   const [claims, setClaims] = useState<Claim[]>([]);
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchDashboard = async () => {
+    const loadData = async () => {
       try {
-        const u = localStorage.getItem("user");
-        if (u) setUserData(JSON.parse(u));
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) setUserData(JSON.parse(storedUser));
 
         const res = await api.get("/deals/user/claims");
         setClaims(res.data);
@@ -37,131 +37,128 @@ export default function DashboardPage() {
         setLoading(false);
       }
     };
-    fetchDashboard();
+    loadData();
   }, []);
 
-  const copyToClipboard = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "approved":
-        return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-      case "pending":
-        return "bg-amber-500/10 text-amber-500 border-amber-500/20";
-      case "rejected":
-        return "bg-red-500/10 text-red-500 border-red-500/20";
-      default:
-        return "bg-slate-800 text-slate-400";
-    }
-  };
+  const totalClaims = claims.length;
+  const approvedCount = claims.filter((c) => c.status === "approved").length;
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-slate-950 text-slate-200">
       <Navbar />
 
-      <div className="container mx-auto px-6 pt-32 pb-20">
-        <div className="flex items-center space-x-6 mb-12">
-          <div className="h-20 w-20 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <span className="text-3xl font-bold text-white">
-              {userData?.name?.charAt(0) || "U"}
-            </span>
-          </div>
+      <main className="container mx-auto px-6 pt-32 pb-24 max-w-5xl">
+        <section className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
           <div>
-            <h1 className="text-3xl font-bold">{userData?.name || "User"}</h1>
-            <p className="text-slate-400">{userData?.email}</p>
+            <h1 className="text-3xl font-bold text-white">
+              {userData?.name
+                ? `Welcome, ${userData.name.split(" ")[0]}`
+                : "Your Dashboard"}
+            </h1>
+            <p className="text-slate-500 mt-1">{userData?.email}</p>
           </div>
-        </div>
 
-        <h2 className="text-2xl font-bold mb-6">My Claims</h2>
+          <div className="flex gap-3">
+            <div className="bg-slate-900 border border-white/5 px-5 py-3 rounded-2xl">
+              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                Total
+              </p>
+              <p className="text-xl font-bold text-white">{totalClaims}</p>
+            </div>
+            <div className="bg-slate-900 border border-white/5 px-5 py-3 rounded-2xl">
+              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                Approved
+              </p>
+              <p className="text-xl font-bold text-emerald-400">
+                {approvedCount}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <h2 className="text-lg font-bold text-white mb-6">Recent Claims</h2>
 
         {loading ? (
-          <div className="space-y-4 animate-pulse">
+          <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-24 bg-slate-900 rounded-xl" />
+              <div
+                key={i}
+                className="h-20 bg-slate-900/50 rounded-xl animate-pulse"
+              />
             ))}
           </div>
         ) : claims.length === 0 ? (
-          <div className="text-center py-20 bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
-            <p className="text-slate-500 mb-4">
-              You haven't claimed any deals yet
+          <div className="text-center py-20 bg-slate-900/20 rounded-3xl border border-white/5">
+            <Ticket className="h-10 w-10 text-slate-700 mx-auto mb-4" />
+            <p className="text-slate-400 mb-6">
+              You haven't claimed any deals yet.
             </p>
-            <a
+            <Link
               href="/deals"
-              className="text-indigo-400 hover:text-indigo-300 font-medium"
+              className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all"
             >
-              Browse Deals
-            </a>
+              Browse Marketplace
+            </Link>
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-3">
             {claims.map((claim) => (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+              <div
                 key={claim._id}
-                className="glass-card p-6 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+                className="bg-slate-900/40 border border-white/5 p-4 rounded-2xl flex items-center justify-between hover:bg-slate-900/60 transition-colors"
               >
-                <div className="flex items-center space-x-4">
-                  <div className="h-12 w-12 bg-white rounded-lg p-2 flex items-center justify-center">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 bg-white rounded-xl p-2 flex-shrink-0">
                     <img
                       src={claim.dealId.logoUrl}
-                      alt={claim.dealId.partnerName}
+                      alt=""
                       className="h-full w-full object-contain"
                     />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg">{claim.dealId.title}</h3>
-                    <p className="text-sm text-slate-400">
-                      Claimed on{" "}
-                      {new Date(claim.createdAt).toLocaleDateString()}
+                    <h3 className="font-bold text-white text-sm">
+                      {claim.dealId.title}
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      {claim.dealId.partnerName}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row items-start md:items-center gap-6 w-full md:w-auto">
-                  <div className="flex flex-col">
-                    <span className="text-xs text-slate-500 mb-1 uppercase tracking-wider">
-                      Status
-                    </span>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusColor(claim.status)} uppercase`}
-                    >
-                      {claim.status}
-                    </span>
+                <div className="flex items-center gap-6">
+                  <div className="hidden sm:block text-right">
+                    <p className="text-[10px] text-slate-600 uppercase font-bold mb-1">
+                      Date
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      {new Date(claim.createdAt).toLocaleDateString()}
+                    </p>
                   </div>
 
-                  {claim.claimCode && (
-                    <div className="flex flex-col w-full md:w-auto">
-                      <span className="text-xs text-slate-500 mb-1 uppercase tracking-wider">
-                        License Key
-                      </span>
-                      <button
-                        onClick={() =>
-                          copyToClipboard(claim.claimCode, claim._id)
-                        }
-                        className="group relative flex items-center space-x-2 bg-slate-950/50 hover:bg-slate-950 px-4 py-2 rounded-lg border border-slate-800 transition-colors text-mono"
-                      >
-                        <code className="text-indigo-300 font-mono">
-                          {claim.claimCode}
-                        </code>
-                        {copiedId === claim._id ? (
-                          <Check className="h-4 w-4 text-emerald-400" />
-                        ) : (
-                          <Copy className="h-4 w-4 text-slate-500 group-hover:text-white" />
-                        )}
-                      </button>
-                    </div>
-                  )}
+                  <div
+                    className={`px-3 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-tight ${
+                      claim.status === "approved"
+                        ? "bg-emerald-500/5 text-emerald-500 border-emerald-500/10"
+                        : claim.status === "pending"
+                          ? "bg-amber-500/5 text-amber-500 border-amber-500/10"
+                          : "bg-red-500/5 text-red-500 border-red-500/10"
+                    }`}
+                  >
+                    {claim.status}
+                  </div>
+
+                  <Link
+                    href={`/deals/${claim.dealId._id}`}
+                    className="text-slate-600 hover:text-white transition-colors"
+                  >
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Link>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

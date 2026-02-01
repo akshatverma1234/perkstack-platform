@@ -1,7 +1,6 @@
 "use client";
 import { motion } from "motion/react";
 import Link from "next/link";
-import { Button } from "@/components/ui/Button";
 import { ArrowRight, Sparkles, Shield, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import ScrollReveal from "@/components/ui/ScrollReveal";
@@ -51,11 +50,9 @@ export const Hero = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="inline-flex items-center gap-2.5 bg-slate-900/40 border border-white/10 rounded-full pl-2 pr-4 py-1 mb-10 backdrop-blur-xl shadow-2xl"
+            className="inline-flex items-center space-x-2 bg-slate-900/40 border border-white/10 rounded-full px-4 py-1.5 mb-10 backdrop-blur-xl shadow-2xl"
           >
-            <span className="flex items-center justify-center bg-indigo-500 text-[10px] font-black uppercase tracking-tighter px-2 py-0.5 rounded-full text-white">
-              New
-            </span>
+            <span className="flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></span>
             <span className="text-sm font-semibold text-slate-300">
               Exclusive SaaS deals added this morning
             </span>
@@ -91,24 +88,17 @@ export const Hero = () => {
             className="flex flex-wrap justify-center gap-4"
           >
             <Link href="/deals">
-              <Button
-                size="lg"
-                className="h-14 px-8 text-md font-bold rounded-2xl group bg-indigo-600 hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-600/20"
-              >
+              <button className="h-14 px-8 text-md font-bold rounded-2xl group bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center">
                 Explore Deals
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
+              </button>
             </Link>
 
             {!isLoggedIn && (
               <Link href="/login">
-                <Button
-                  variant="ghost"
-                  size="lg"
-                  className="h-14 px-8 text-md font-bold rounded-2xl border border-white/5 hover:bg-white/5"
-                >
+                <button className="h-14 px-8 text-md font-bold rounded-2xl border border-white/5 bg-transparent hover:bg-white/5 text-white transition-all flex items-center justify-center">
                   Join For Free
-                </Button>
+                </button>
               </Link>
             )}
           </motion.div>
